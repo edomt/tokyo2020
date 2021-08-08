@@ -24,16 +24,18 @@ mapping <- fread("input/country_mapping.csv")
 
 df[, entity := mapvalues(`Team/NOC`, mapping$from, mapping$to)]
 
-pop <- fread("input/population.csv")
+pop_gdp <- fread("input/pop_gdp.csv")
 
-df <- merge(df, pop, by = "entity", all.x = TRUE)
+df <- merge(df, pop_gdp, by = "entity", all.x = TRUE)
 stopifnot(all(!is.na(df$population)))
 
 df[is.na(Total), Total := 0]
 df[, medals_per_million := round(1e6 * Total / population, 4)]
 setorder(df, -medals_per_million)
 
-df <- df[, c("entity", "Total", "population", "medals_per_million")]
+df[, medals_per_gdp := round(1e12 * Total / gdp, 4)]
+
+df <- df[, c("entity", "Total", "population", "medals_per_million", "medals_per_gdp")]
 setnames(df, "Total", "medals")
 df <- df[, last_updated := today()]
 
